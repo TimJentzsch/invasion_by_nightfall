@@ -1,23 +1,17 @@
-use std::time::Duration;
-
 use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
-    time::common_conditions::on_timer,
 };
 use bevy_turborand::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, RngPlugin::default()))
+        .add_event::<SpawnUnit>()
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            (
-                spawn_unit.run_if(on_timer(Duration::from_secs(5))),
-                move_units,
-            )
-                .chain(),
+            (coin_generation, handle_input, spawn_unit, move_units).chain(),
         )
         .run();
 }
@@ -41,6 +35,14 @@ struct CustomMaterials {
     unit: Handle<ColorMaterial>,
 }
 
+#[derive(Debug, Resource, Default)]
+struct Resources {
+    coins: f32,
+}
+
+#[derive(Debug, Event)]
+struct SpawnUnit;
+
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -48,6 +50,7 @@ fn setup(
     mut global_rng: ResMut<GlobalRng>,
 ) {
     commands.spawn(Camera2dBundle::default());
+    commands.init_resource::<Resources>();
 
     let custom_meshes = CustomMeshes {
         unit: Mesh2dHandle(meshes.add(Capsule2d::new(6.0, 15.0))),
@@ -72,30 +75,49 @@ fn setup(
     commands.insert_resource(custom_materials);
 }
 
+fn coin_generation(mut resources: ResMut<Resources>, time: Res<Time>) {
+    resources.coins += 10. * time.delta_seconds();
+    println!("Coins: {}", resources.coins);
+}
+
+fn handle_input(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut resources: ResMut<Resources>,
+    mut spawn_unit_event: EventWriter<SpawnUnit>,
+) {
+    if keyboard_input.just_released(KeyCode::KeyQ) && resources.coins >= 100. {
+        resources.coins -= 100.;
+        spawn_unit_event.send(SpawnUnit);
+    }
+}
+
 fn spawn_unit(
+    mut spawn_unit_event: EventReader<SpawnUnit>,
     mut commands: Commands,
     mut global_rng: ResMut<GlobalRng>,
     meshes: Res<CustomMeshes>,
     materials: Res<CustomMaterials>,
     base_transform: Query<&Transform, (With<Base>, With<Player>)>,
 ) {
-    let mut rng_component = RngComponent::from(&mut global_rng);
+    for _ in spawn_unit_event.read() {
+        let mut rng_component = RngComponent::from(&mut global_rng);
 
-    let mut transform = *base_transform.single();
-    transform.translation.z += 100. + rng_component.f32() * 10.;
-    transform.translation.y += rng_component.f32() * 2.;
+        let mut transform = *base_transform.single();
+        transform.translation.z += 100. + rng_component.f32() * 10.;
+        transform.translation.y += rng_component.f32() * 2.;
 
-    commands.spawn((
-        Player,
-        Unit,
-        rng_component,
-        MaterialMesh2dBundle {
-            mesh: meshes.unit.clone(),
-            material: materials.unit.clone(),
-            transform,
-            ..default()
-        },
-    ));
+        commands.spawn((
+            Player,
+            Unit,
+            rng_component,
+            MaterialMesh2dBundle {
+                mesh: meshes.unit.clone(),
+                material: materials.unit.clone(),
+                transform,
+                ..default()
+            },
+        ));
+    }
 }
 
 fn move_units(mut unit_query: Query<&mut Transform, (With<Player>, With<Unit>)>, time: Res<Time>) {
