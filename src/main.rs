@@ -5,10 +5,11 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     time::common_conditions::on_timer,
 };
+use bevy_turborand::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins, RngPlugin::default()))
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -44,6 +45,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut global_rng: ResMut<GlobalRng>,
 ) {
     commands.spawn(Camera2dBundle::default());
 
@@ -57,6 +59,7 @@ fn setup(
     commands.spawn((
         Player,
         Base,
+        RngComponent::from(&mut global_rng),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Rectangle::new(50.0, 150.0))),
             material: materials.add(Color::GRAY),
@@ -71,16 +74,21 @@ fn setup(
 
 fn spawn_unit(
     mut commands: Commands,
+    mut global_rng: ResMut<GlobalRng>,
     meshes: Res<CustomMeshes>,
     materials: Res<CustomMaterials>,
-    base_query: Query<&Transform, (With<Base>, With<Player>)>,
+    base_transform: Query<&Transform, (With<Base>, With<Player>)>,
 ) {
-    let mut transform = *base_query.single();
-    transform.translation.z += 1.;
+    let mut rng_component = RngComponent::from(&mut global_rng);
+
+    let mut transform = *base_transform.single();
+    transform.translation.z += 100. + rng_component.f32() * 10.;
+    transform.translation.y += rng_component.f32() * 2.;
 
     commands.spawn((
         Player,
         Unit,
+        rng_component,
         MaterialMesh2dBundle {
             mesh: meshes.unit.clone(),
             material: materials.unit.clone(),
