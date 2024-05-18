@@ -1,3 +1,5 @@
+//! Display the game on the screen.
+
 use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},

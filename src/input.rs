@@ -1,3 +1,5 @@
+//! Process user input and trigger game logic events with it.
+
 use bevy::prelude::*;
 
 use crate::core::{CoreSystemSet, Resources, SpawnUnit};
