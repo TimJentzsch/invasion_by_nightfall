@@ -7,6 +7,9 @@ edition = "2021"
 bevy = "0.13.2"
 bevy_turborand = "0.8.2"
 
+[lints.clippy]
+type_complexity = "allow"
+
 [profile.dev]
 opt-level = 1
 

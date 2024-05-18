@@ -41,6 +41,12 @@ pub struct Player;
 #[derive(Debug, Component)]
 pub struct Unit;
 
+#[derive(Debug, Component)]
+pub struct UnitStats {
+    speed: f32,
+    direction: Vec3,
+}
+
 fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
     commands.insert_resource(Inventory {
         coins: Item::empty(1000),
@@ -78,6 +84,10 @@ fn spawn_unit(
         commands.spawn((
             Player,
             Unit,
+            UnitStats {
+                speed: 10.,
+                direction: Vec3::new(1., 0., 0.),
+            },
             rng_component,
             TransformBundle {
                 local: transform,
@@ -88,8 +98,11 @@ fn spawn_unit(
     }
 }
 
-fn move_units(mut unit_query: Query<&mut Transform, (With<Player>, With<Unit>)>, time: Res<Time>) {
-    for mut transform in unit_query.iter_mut() {
-        transform.translation += Vec3::new(10., 0., 0.) * time.delta_seconds();
+fn move_units(
+    mut unit_query: Query<(&mut Transform, &UnitStats), (With<Player>, With<Unit>)>,
+    time: Res<Time>,
+) {
+    for (mut transform, stats) in unit_query.iter_mut() {
+        transform.translation += stats.direction * stats.speed * time.delta_seconds();
     }
 }
