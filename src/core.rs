@@ -58,7 +58,6 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
 
 fn coin_generation(mut resources: ResMut<Resources>, time: Res<Time>) {
     resources.coins += 10. * time.delta_seconds();
-    println!("Coins: {}", resources.coins);
 }
 
 fn spawn_unit(
