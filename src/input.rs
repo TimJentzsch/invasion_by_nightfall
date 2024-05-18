@@ -1,14 +1,18 @@
 use bevy::prelude::*;
 
-use crate::core::{Resources, SpawnUnit};
+use crate::core::{CoreSystemSet, Resources, SpawnUnit};
 
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, handle_input);
+        app.configure_sets(Update, InputSystemSet.before(CoreSystemSet))
+            .add_systems(Update, handle_input.in_set(InputSystemSet));
     }
 }
+
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+struct InputSystemSet;
 
 fn handle_input(
     keyboard_input: Res<ButtonInput<KeyCode>>,
