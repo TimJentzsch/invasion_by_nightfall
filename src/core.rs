@@ -53,6 +53,7 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
             local: Transform::from_xyz(-400., 0., -10.),
             ..default()
         },
+        VisibilityBundle::default(),
     ));
 }
 
@@ -81,6 +82,7 @@ fn spawn_unit(
                 local: transform,
                 ..default()
             },
+            VisibilityBundle::default(),
         ));
     }
 }
