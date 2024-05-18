@@ -21,8 +21,7 @@ fn handle_input(
     mut inventory: ResMut<Inventory>,
     mut spawn_unit_event: EventWriter<SpawnUnit>,
 ) {
-    if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins >= 100. {
-        inventory.coins -= 100.;
+    if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins.try_remove(100) {
         spawn_unit_event.send(SpawnUnit);
     }
 }

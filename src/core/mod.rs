@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 
-use self::inventory::Inventory;
+use self::inventory::{Inventory, Item};
 
 pub mod inventory;
 
@@ -42,7 +42,9 @@ pub struct Player;
 pub struct Unit;
 
 fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
-    commands.init_resource::<Inventory>();
+    commands.insert_resource(Inventory {
+        coins: Item::empty(1000),
+    });
 
     commands.spawn((
         Player,
@@ -57,7 +59,7 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
 }
 
 fn coin_generation(mut inventory: ResMut<Inventory>, time: Res<Time>) {
-    inventory.coins += 10. * time.delta_seconds();
+    inventory.coins.add_until_full(10. * time.delta_seconds());
 }
 
 fn spawn_unit(
