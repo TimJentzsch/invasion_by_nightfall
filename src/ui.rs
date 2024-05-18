@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::core::{CoreSystemSet, Resources};
+use crate::core::{inventory::Inventory, CoreSystemSet};
 
 pub struct UiPlugin;
 
@@ -84,7 +84,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-fn update_coins(mut query: Query<&mut Text, With<CoinText>>, resources: Res<Resources>) {
+fn update_coins(mut query: Query<&mut Text, With<CoinText>>, inventory: Res<Inventory>) {
     let mut text = query.single_mut();
-    text.sections[0].value = format!("{:.0}", resources.coins);
+    text.sections[0].value = format!("{:.0}", inventory.coins);
 }

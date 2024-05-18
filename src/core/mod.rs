@@ -5,6 +5,10 @@
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 
+use self::inventory::Inventory;
+
+pub mod inventory;
+
 pub struct CorePlugin;
 
 impl Plugin for CorePlugin {
@@ -37,13 +41,8 @@ pub struct Player;
 #[derive(Debug, Component)]
 pub struct Unit;
 
-#[derive(Debug, Resource, Default)]
-pub struct Resources {
-    pub coins: f32,
-}
-
 fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
-    commands.init_resource::<Resources>();
+    commands.init_resource::<Inventory>();
 
     commands.spawn((
         Player,
@@ -57,8 +56,8 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
     ));
 }
 
-fn coin_generation(mut resources: ResMut<Resources>, time: Res<Time>) {
-    resources.coins += 10. * time.delta_seconds();
+fn coin_generation(mut inventory: ResMut<Inventory>, time: Res<Time>) {
+    inventory.coins += 10. * time.delta_seconds();
 }
 
 fn spawn_unit(

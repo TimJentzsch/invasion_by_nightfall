@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::core::{CoreSystemSet, Resources, SpawnUnit};
+use crate::core::{inventory::Inventory, CoreSystemSet, SpawnUnit};
 
 pub struct InputPlugin;
 
@@ -18,11 +18,11 @@ struct InputSystemSet;
 
 fn handle_input(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut resources: ResMut<Resources>,
+    mut inventory: ResMut<Inventory>,
     mut spawn_unit_event: EventWriter<SpawnUnit>,
 ) {
-    if keyboard_input.just_released(KeyCode::KeyQ) && resources.coins >= 100. {
-        resources.coins -= 100.;
+    if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins >= 100. {
+        inventory.coins -= 100.;
         spawn_unit_event.send(SpawnUnit);
     }
 }
