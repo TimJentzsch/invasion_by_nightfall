@@ -22,6 +22,6 @@ fn handle_input(
     mut spawn_unit_event: EventWriter<SpawnUnit>,
 ) {
     if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins.try_remove(100) {
-        spawn_unit_event.send(SpawnUnit);
+        spawn_unit_event.send(SpawnUnit { is_foe: false });
     }
 }
