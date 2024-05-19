@@ -5,7 +5,7 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 
-use crate::core::{Base, CoreSystemSet, Unit};
+use crate::core::{Base, CoreSystemSet, Foe, Unit};
 
 pub struct RenderingPlugin;
 
@@ -35,7 +35,8 @@ struct CustomMeshes {
 
 #[derive(Debug, Resource)]
 struct CustomMaterials {
-    unit: Handle<ColorMaterial>,
+    friend_unit: Handle<ColorMaterial>,
+    foe_unit: Handle<ColorMaterial>,
     base: Handle<ColorMaterial>,
 }
 
@@ -51,7 +52,8 @@ fn setup(
         base: Mesh2dHandle(meshes.add(Rectangle::new(50.0, 150.0))),
     };
     let custom_materials = CustomMaterials {
-        unit: materials.add(Color::WHITE),
+        friend_unit: materials.add(Color::WHITE),
+        foe_unit: materials.add(Color::BLACK),
         base: materials.add(Color::GRAY),
     };
 
@@ -80,13 +82,18 @@ fn spawn_unit_graphics(
     mut commands: Commands,
     meshes: Res<CustomMeshes>,
     materials: Res<CustomMaterials>,
-    spawned_unit_query: Query<Entity, Added<Unit>>,
+    spawned_unit_query: Query<(Entity, Has<Foe>), Added<Unit>>,
 ) {
-    for spawned_unit in spawned_unit_query.iter() {
+    for (spawned_unit, is_foe) in spawned_unit_query.iter() {
         commands.entity(spawned_unit).with_children(|parent| {
+            let material = if is_foe {
+                materials.foe_unit.clone()
+            } else {
+                materials.friend_unit.clone()
+            };
             parent.spawn(MaterialMesh2dBundle {
                 mesh: meshes.unit.clone(),
-                material: materials.unit.clone(),
+                material,
                 ..default()
             });
         });
