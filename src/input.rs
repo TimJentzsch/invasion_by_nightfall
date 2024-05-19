@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::core::{inventory::Inventory, CoreSystemSet, SpawnUnit};
+use crate::core::{inventory::Inventory, CoreSystemSet, SpawnUnit, UnitType};
 
 pub struct InputPlugin;
 
@@ -21,7 +21,12 @@ fn handle_input(
     mut inventory: ResMut<Inventory>,
     mut spawn_unit_event: EventWriter<SpawnUnit>,
 ) {
-    if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins.try_remove(100) {
-        spawn_unit_event.send(SpawnUnit { is_foe: false });
+    let unit_type = UnitType::Farmer;
+
+    if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins.try_remove(unit_type.cost()) {
+        spawn_unit_event.send(SpawnUnit {
+            is_foe: false,
+            unit_type,
+        });
     }
 }

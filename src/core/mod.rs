@@ -43,6 +43,7 @@ pub struct CoreSystemSet;
 #[derive(Debug, Event)]
 pub struct SpawnUnit {
     pub is_foe: bool,
+    pub unit_type: UnitType,
 }
 
 #[derive(Debug, Event)]
@@ -56,6 +57,37 @@ pub struct Foe;
 
 #[derive(Debug, Component)]
 pub struct Unit;
+
+#[derive(Debug, Component, Clone, Copy)]
+pub enum UnitType {
+    Farmer,
+    Shadow,
+}
+
+impl UnitType {
+    pub fn cost(&self) -> u32 {
+        match *self {
+            Self::Farmer => 10,
+            Self::Shadow => 0,
+        }
+    }
+
+    pub fn stats(&self) -> UnitStats {
+        match *self {
+            Self::Farmer => UnitStats {
+                speed: 10.,
+                direction: Vec3::new(1., 0., 0.),
+                attack_range: 20.,
+            },
+
+            Self::Shadow => UnitStats {
+                speed: 10.,
+                direction: Vec3::new(-1., 0., 0.),
+                attack_range: 10.,
+            },
+        }
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct UnitStats {
@@ -103,7 +135,10 @@ fn coin_generation(mut inventory: ResMut<Inventory>, time: Res<Time>) {
 }
 
 fn generate_waves(mut spawn_unit_event: EventWriter<SpawnUnit>) {
-    spawn_unit_event.send(SpawnUnit { is_foe: true });
+    spawn_unit_event.send(SpawnUnit {
+        is_foe: true,
+        unit_type: UnitType::Shadow,
+    });
 }
 
 fn spawn_unit(
@@ -113,7 +148,7 @@ fn spawn_unit(
     friend_base: Query<&Transform, (With<Base>, Without<Foe>)>,
     foe_base: Query<&Transform, (With<Base>, With<Foe>)>,
 ) {
-    for SpawnUnit { is_foe } in spawn_unit_event.read() {
+    for SpawnUnit { is_foe, unit_type } in spawn_unit_event.read() {
         let mut rng_component = RngComponent::from(&mut global_rng);
 
         let mut transform = if *is_foe {
@@ -124,20 +159,11 @@ fn spawn_unit(
         transform.translation.z += 100. + rng_component.f32() * 10.;
         transform.translation.y += rng_component.f32() * 2.;
 
-        let direction = if *is_foe {
-            Vec3::new(-1., 0., 0.)
-        } else {
-            Vec3::new(1., 0., 0.)
-        };
-
         let id = commands
             .spawn((
                 Unit,
-                UnitStats {
-                    speed: 10.,
-                    direction,
-                    attack_range: 50.,
-                },
+                unit_type.stats(),
+                *unit_type,
                 rng_component,
                 TransformBundle {
                     local: transform,

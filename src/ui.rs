@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::core::{inventory::Inventory, CoreSystemSet};
+use crate::core::{inventory::Inventory, CoreSystemSet, UnitType};
 
 pub struct UiPlugin;
 
@@ -77,7 +77,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .with_children(|child| {
                     child.spawn((TextBundle::from_sections([
                         TextSection::new("[Q] Farmer (", footer_style.clone()),
-                        TextSection::new("100", footer_style.clone()),
+                        TextSection::new(UnitType::Farmer.cost().to_string(), footer_style.clone()),
                         TextSection::new(" G)", footer_style.clone()),
                     ]),));
                 });
