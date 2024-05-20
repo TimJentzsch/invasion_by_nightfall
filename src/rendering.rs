@@ -24,7 +24,7 @@ impl Plugin for RenderingPlugin {
             )
             .add_systems(
                 OnEnter(GameState::InGame),
-                (setup, setup_base_graphics)
+                (setup_in_game, setup_base_graphics)
                     .chain()
                     .in_set(RenderingSystemSet),
             )
@@ -48,7 +48,7 @@ struct CustomMaterials {
     base: Handle<ColorMaterial>,
 }
 
-fn setup(
+fn setup_in_game(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,

@@ -1,14 +1,22 @@
 use bevy::prelude::*;
 
-use crate::core::{inventory::Inventory, CoreSystemSet, UnitType};
+use crate::core::{game_state::GameState, inventory::Inventory, CoreSystemSet, UnitType};
 
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_sets(Startup, UiSystemSet.after(CoreSystemSet))
-            .configure_sets(Update, UiSystemSet.after(CoreSystemSet))
-            .add_systems(Startup, setup.in_set(UiSystemSet))
+        app.configure_sets(OnEnter(GameState::InGame), UiSystemSet.after(CoreSystemSet))
+            .configure_sets(
+                Update,
+                UiSystemSet
+                    .after(CoreSystemSet)
+                    .run_if(in_state(GameState::InGame)),
+            )
+            .add_systems(
+                OnEnter(GameState::InGame),
+                setup_in_game.in_set(UiSystemSet),
+            )
             .add_systems(Update, update_coins.in_set(UiSystemSet));
     }
 }
@@ -17,9 +25,12 @@ impl Plugin for UiPlugin {
 struct UiSystemSet;
 
 #[derive(Debug, Component)]
+struct InGameUi;
+
+#[derive(Debug, Component)]
 struct CoinText;
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_in_game(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font = asset_server.load("fonts/fira_sans/FiraSans-Medium.ttf");
     let header_style = TextStyle {
         font: font.clone(),
@@ -33,16 +44,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     };
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                height: Val::Percent(100.),
-                width: Val::Percent(100.),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::SpaceBetween,
+        .spawn((
+            InGameUi,
+            NodeBundle {
+                style: Style {
+                    height: Val::Percent(100.),
+                    width: Val::Percent(100.),
+                    flex_direction: FlexDirection::Column,
+                    justify_content: JustifyContent::SpaceBetween,
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        })
+        ))
         .with_children(|child| {
             // Header bar
             child

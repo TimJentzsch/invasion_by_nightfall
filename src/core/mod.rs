@@ -25,7 +25,7 @@ impl Plugin for CorePlugin {
             .add_event::<SpawnUnit>()
             .add_event::<Attack>()
             .init_state::<GameState>()
-            .add_systems(OnEnter(GameState::InGame), setup)
+            .add_systems(OnEnter(GameState::InGame), setup_in_game)
             .add_systems(
                 Update,
                 (
@@ -112,7 +112,7 @@ pub enum Attacking {
     Backswing(Timer),
 }
 
-fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
+fn setup_in_game(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
     commands.insert_resource(Inventory {
         coins: Item::empty(100),
     });
