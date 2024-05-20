@@ -7,9 +7,13 @@ use std::time::Duration;
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use bevy_turborand::prelude::*;
 
-use self::inventory::{Inventory, Item};
+use self::{
+    inventory::{Inventory, Item},
+    stats::{Health, UnitStats},
+};
 
 pub mod inventory;
+pub mod stats;
 
 pub struct CorePlugin;
 
@@ -83,7 +87,7 @@ impl UnitType {
     pub fn stats(&self) -> UnitStats {
         match *self {
             Self::Farmer => UnitStats {
-                health: 5.,
+                health: Health::from_max(5.),
                 speed: 10.,
                 direction: Vec3::new(1., 0., 0.),
                 attack_range: 20.,
@@ -91,7 +95,7 @@ impl UnitType {
             },
 
             Self::Shadow => UnitStats {
-                health: 10.,
+                health: Health::from_max(10.),
                 speed: 10.,
                 direction: Vec3::new(-1., 0., 0.),
                 attack_range: 10.,
@@ -99,15 +103,6 @@ impl UnitType {
             },
         }
     }
-}
-
-#[derive(Debug, Component, Clone)]
-pub struct UnitStats {
-    health: f32,
-    speed: f32,
-    attack_range: f32,
-    attack_damage: f32,
-    direction: Vec3,
 }
 
 #[derive(Debug, Component)]
@@ -313,14 +308,14 @@ fn attack(
             });
 
         if let Some((_, _, mut stats)) = closest_unit {
-            stats.health -= unit_stats.attack_damage;
+            stats.health.apply_damage(unit_stats.attack_damage);
         }
     }
 }
 
 fn die(mut commands: Commands, unit_query: Query<(Entity, &UnitStats)>) {
     for (unit, stats) in unit_query.iter() {
-        if stats.health <= 0. {
+        if stats.health.is_dead() {
             commands.entity(unit).despawn_recursive();
         }
     }
