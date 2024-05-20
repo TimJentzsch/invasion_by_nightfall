@@ -2,14 +2,21 @@
 
 use bevy::prelude::*;
 
-use crate::core::{inventory::Inventory, CoreSystemSet, SpawnUnit, UnitType};
+use crate::core::{
+    game_state::GameState, inventory::Inventory, CoreSystemSet, SpawnUnit, UnitType,
+};
 
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_sets(Update, InputSystemSet.before(CoreSystemSet))
-            .add_systems(Update, handle_input.in_set(InputSystemSet));
+        app.configure_sets(
+            Update,
+            InputSystemSet
+                .before(CoreSystemSet)
+                .run_if(in_state(GameState::InGame)),
+        )
+        .add_systems(Update, handle_input.in_set(InputSystemSet));
     }
 }
 

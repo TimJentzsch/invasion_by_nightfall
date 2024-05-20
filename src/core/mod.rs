@@ -8,10 +8,12 @@ use bevy::{prelude::*, time::common_conditions::on_timer};
 use bevy_turborand::prelude::*;
 
 use self::{
+    game_state::GameState,
     inventory::{Inventory, Item},
     stats::{Health, UnitStats},
 };
 
+pub mod game_state;
 pub mod inventory;
 pub mod stats;
 
@@ -22,7 +24,8 @@ impl Plugin for CorePlugin {
         app.add_plugins(RngPlugin::default())
             .add_event::<SpawnUnit>()
             .add_event::<Attack>()
-            .add_systems(Startup, setup)
+            .init_state::<GameState>()
+            .add_systems(OnEnter(GameState::InGame), setup)
             .add_systems(
                 Update,
                 (
@@ -38,7 +41,8 @@ impl Plugin for CorePlugin {
                         .chain(),
                 )
                     .chain()
-                    .in_set(CoreSystemSet),
+                    .in_set(CoreSystemSet)
+                    .run_if(in_state(GameState::InGame)),
             );
     }
 }
@@ -321,10 +325,25 @@ fn attack(
     }
 }
 
-fn die(mut commands: Commands, unit_query: Query<(Entity, &Health)>) {
-    for (unit, health) in unit_query.iter() {
+fn die(
+    mut commands: Commands,
+    mut next_state: ResMut<NextState<GameState>>,
+    unit_query: Query<(Entity, &Health, Has<Base>, Has<Foe>)>,
+) {
+    for (unit, health, is_base, is_foe) in unit_query.iter() {
         if health.is_dead() {
             commands.entity(unit).despawn_recursive();
+
+            // Check for game end
+            if is_base {
+                if is_foe {
+                    println!("You won!");
+                } else {
+                    println!("You lost!");
+                }
+
+                next_state.set(GameState::PostGame);
+            }
         }
     }
 }

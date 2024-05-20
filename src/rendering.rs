@@ -5,17 +5,25 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 
-use crate::core::{Base, CoreSystemSet, Foe, Unit};
+use crate::core::{game_state::GameState, Base, CoreSystemSet, Foe, Unit};
 
 pub struct RenderingPlugin;
 
 impl Plugin for RenderingPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(DefaultPlugins)
-            .configure_sets(Startup, RenderingSystemSet.after(CoreSystemSet))
-            .configure_sets(Update, RenderingSystemSet.after(CoreSystemSet))
+            .configure_sets(
+                OnEnter(GameState::InGame),
+                RenderingSystemSet.after(CoreSystemSet),
+            )
+            .configure_sets(
+                Update,
+                RenderingSystemSet
+                    .after(CoreSystemSet)
+                    .run_if(in_state(GameState::InGame)),
+            )
             .add_systems(
-                Startup,
+                OnEnter(GameState::InGame),
                 (setup, setup_base_graphics)
                     .chain()
                     .in_set(RenderingSystemSet),
