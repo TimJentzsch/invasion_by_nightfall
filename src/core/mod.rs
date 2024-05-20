@@ -89,7 +89,6 @@ impl UnitType {
             Self::Farmer => UnitStats {
                 health: Health::from_max(5.),
                 speed: 10.,
-                direction: Vec3::new(1., 0., 0.),
                 attack_range: 20.,
                 attack_damage: 2.,
             },
@@ -97,7 +96,6 @@ impl UnitType {
             Self::Shadow => UnitStats {
                 health: Health::from_max(10.),
                 speed: 10.,
-                direction: Vec3::new(-1., 0., 0.),
                 attack_range: 10.,
                 attack_damage: 2.,
             },
@@ -194,6 +192,8 @@ fn unit_behavior(
     other_query: Query<(&Transform, Has<Foe>), Or<(With<Unit>, With<Base>)>>,
 ) {
     for (entity, transform, stats, is_foe) in unit_query.iter() {
+        let direction = if is_foe { -1. } else { 1. };
+
         let is_in_attack_range = other_query.iter().any(|(other_transform, is_other_foe)| {
             if is_foe == is_other_foe {
                 // Only attack units from the other fraction
@@ -205,7 +205,7 @@ fn unit_behavior(
 
             let distance = other_x - x;
 
-            if distance.signum() != stats.direction.x {
+            if distance.signum() != direction {
                 // Only attack units in front of you
                 return false;
             }
@@ -221,11 +221,13 @@ fn unit_behavior(
 }
 
 fn move_units(
-    mut unit_query: Query<(&mut Transform, &UnitStats), (With<Unit>, Without<Attacking>)>,
+    mut unit_query: Query<(&mut Transform, &UnitStats, Has<Foe>), (With<Unit>, Without<Attacking>)>,
     time: Res<Time>,
 ) {
-    for (mut transform, stats) in unit_query.iter_mut() {
-        transform.translation += stats.direction * stats.speed * time.delta_seconds();
+    for (mut transform, stats, is_foe) in unit_query.iter_mut() {
+        let direction = if is_foe { -1. } else { 1. };
+
+        transform.translation += Vec3::new(direction, 0., 0.) * stats.speed * time.delta_seconds();
     }
 }
 

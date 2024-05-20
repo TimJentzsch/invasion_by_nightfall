@@ -8,7 +8,6 @@ pub struct UnitStats {
     pub speed: f32,
     pub attack_range: f32,
     pub attack_damage: f32,
-    pub direction: Vec3,
 }
 
 #[derive(Debug, Clone, Copy)]
