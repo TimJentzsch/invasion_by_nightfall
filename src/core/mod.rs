@@ -87,14 +87,12 @@ impl UnitType {
     pub fn stats(&self) -> UnitStats {
         match *self {
             Self::Farmer => UnitStats {
-                health: Health::from_max(5.),
                 speed: 10.,
                 attack_range: 25.,
                 attack_damage: 2.,
             },
 
             Self::Shadow => UnitStats {
-                health: Health::from_max(10.),
                 speed: 10.,
                 attack_range: 20.,
                 attack_damage: 2.,
@@ -117,6 +115,7 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
 
     commands.spawn((
         Base,
+        Health::from_max(100.),
         RngComponent::from(&mut global_rng),
         TransformBundle {
             local: Transform::from_xyz(-200., 0., -10.),
@@ -128,6 +127,7 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
     commands.spawn((
         Base,
         Foe,
+        Health::from_max(100.),
         RngComponent::from(&mut global_rng),
         TransformBundle {
             local: Transform::from_xyz(200., 0., -10.),
@@ -158,11 +158,16 @@ fn spawn_unit(
     for SpawnUnit { is_foe, unit_type } in spawn_unit_event.read() {
         let mut rng_component = RngComponent::from(&mut global_rng);
 
-        let mut transform = if *is_foe {
-            *foe_base.single()
+        let base_transform = if *is_foe {
+            foe_base.get_single()
         } else {
-            *friend_base.single()
+            friend_base.get_single()
         };
+        let Ok(base_transform) = base_transform else {
+            continue;
+        };
+        let mut transform = *base_transform;
+
         transform.translation.z += 100. + rng_component.f32() * 10.;
         transform.translation.y += rng_component.f32() * 2.;
 
@@ -170,6 +175,7 @@ fn spawn_unit(
             .spawn((
                 Unit,
                 unit_type.stats(),
+                Health::from_unit(unit_type),
                 *unit_type,
                 rng_component,
                 TransformBundle {
@@ -271,7 +277,7 @@ fn attack_animation(
 
 fn attack(
     mut attack_event: EventReader<Attack>,
-    mut unit_query: Query<(&Transform, Has<Foe>, &mut UnitStats), With<Unit>>,
+    mut target_query: Query<(&Transform, Has<Foe>, &mut Health)>,
 ) {
     for Attack {
         is_foe,
@@ -280,7 +286,7 @@ fn attack(
         direction,
     } in attack_event.read()
     {
-        let closest_unit = unit_query
+        let closest_unit = target_query
             .iter_mut()
             .filter(|(other_transform, is_other_foe, _)| {
                 if is_foe == is_other_foe {
@@ -309,15 +315,15 @@ fn attack(
                     .unwrap_or(std::cmp::Ordering::Less)
             });
 
-        if let Some((_, _, mut stats)) = closest_unit {
-            stats.health.apply_damage(unit_stats.attack_damage);
+        if let Some((_, _, mut health)) = closest_unit {
+            health.apply_damage(unit_stats.attack_damage);
         }
     }
 }
 
-fn die(mut commands: Commands, unit_query: Query<(Entity, &UnitStats)>) {
-    for (unit, stats) in unit_query.iter() {
-        if stats.health.is_dead() {
+fn die(mut commands: Commands, unit_query: Query<(Entity, &Health)>) {
+    for (unit, health) in unit_query.iter() {
+        if health.is_dead() {
             commands.entity(unit).despawn_recursive();
         }
     }
