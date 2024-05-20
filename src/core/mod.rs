@@ -89,14 +89,14 @@ impl UnitType {
             Self::Farmer => UnitStats {
                 health: Health::from_max(5.),
                 speed: 10.,
-                attack_range: 20.,
+                attack_range: 25.,
                 attack_damage: 2.,
             },
 
             Self::Shadow => UnitStats {
                 health: Health::from_max(10.),
                 speed: 10.,
-                attack_range: 10.,
+                attack_range: 20.,
                 attack_damage: 2.,
             },
         }
@@ -112,14 +112,14 @@ pub enum Attacking {
 
 fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
     commands.insert_resource(Inventory {
-        coins: Item::empty(1000),
+        coins: Item::empty(100),
     });
 
     commands.spawn((
         Base,
         RngComponent::from(&mut global_rng),
         TransformBundle {
-            local: Transform::from_xyz(-400., 0., -10.),
+            local: Transform::from_xyz(-200., 0., -10.),
             ..default()
         },
         VisibilityBundle::default(),
@@ -130,7 +130,7 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
         Foe,
         RngComponent::from(&mut global_rng),
         TransformBundle {
-            local: Transform::from_xyz(400., 0., -10.),
+            local: Transform::from_xyz(200., 0., -10.),
             ..default()
         },
         VisibilityBundle::default(),
@@ -138,7 +138,7 @@ fn setup(mut commands: Commands, mut global_rng: ResMut<GlobalRng>) {
 }
 
 fn coin_generation(mut inventory: ResMut<Inventory>, time: Res<Time>) {
-    inventory.coins.add_until_full(10. * time.delta_seconds());
+    inventory.coins.add_until_full(2. * time.delta_seconds());
 }
 
 fn generate_waves(mut spawn_unit_event: EventWriter<SpawnUnit>) {

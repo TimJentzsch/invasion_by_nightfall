@@ -48,8 +48,8 @@ fn setup(
     commands.spawn(Camera2dBundle::default());
 
     let custom_meshes = CustomMeshes {
-        unit: Mesh2dHandle(meshes.add(Capsule2d::new(6.0, 15.0))),
-        base: Mesh2dHandle(meshes.add(Rectangle::new(50.0, 150.0))),
+        unit: Mesh2dHandle(meshes.add(Capsule2d::new(10.0, 20.0))),
+        base: Mesh2dHandle(meshes.add(Rectangle::new(100.0, 150.0))),
     };
     let custom_materials = CustomMaterials {
         friend_unit: materials.add(Color::WHITE),
