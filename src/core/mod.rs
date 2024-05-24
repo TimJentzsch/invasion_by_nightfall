@@ -36,7 +36,10 @@ impl Plugin for CorePlugin {
                     spawn_unit,
                     (
                         unit_behavior,
-                        (move_units, (attack_animation, attack, die).chain()),
+                        (
+                            move_units,
+                            (attack_animation, attack, die, game_end).chain(),
+                        ),
                     )
                         .chain(),
                 )
@@ -103,6 +106,17 @@ impl UnitType {
             },
         }
     }
+}
+
+#[derive(States, Debug, PartialEq, Eq, Hash, Clone)]
+pub enum Winner {
+    Player,
+    Enemy,
+}
+
+#[derive(Debug, Resource)]
+pub struct GameStats {
+    pub winner: Winner,
 }
 
 #[derive(Debug, Component)]
@@ -325,25 +339,30 @@ fn attack(
     }
 }
 
-fn die(
-    mut commands: Commands,
-    mut next_state: ResMut<NextState<GameState>>,
-    unit_query: Query<(Entity, &Health, Has<Base>, Has<Foe>)>,
-) {
-    for (unit, health, is_base, is_foe) in unit_query.iter() {
+fn die(mut commands: Commands, unit_query: Query<(Entity, &Health)>) {
+    for (unit, health) in unit_query.iter() {
         if health.is_dead() {
             commands.entity(unit).despawn_recursive();
-
-            // Check for game end
-            if is_base {
-                if is_foe {
-                    println!("You won!");
-                } else {
-                    println!("You lost!");
-                }
-
-                next_state.set(GameState::PostGame);
-            }
         }
+    }
+}
+
+fn game_end(
+    mut commands: Commands,
+    mut next_state: ResMut<NextState<GameState>>,
+    foe_bases: Query<Entity, (With<Base>, With<Foe>)>,
+    player_bases: Query<Entity, (With<Base>, Without<Foe>)>,
+) {
+    let winner = if foe_bases.iter().count() == 0 {
+        Some(Winner::Player)
+    } else if player_bases.iter().count() == 0 {
+        Some(Winner::Enemy)
+    } else {
+        None
+    };
+
+    if let Some(winner) = winner {
+        commands.insert_resource(GameStats { winner });
+        next_state.set(GameState::PostGame);
     }
 }

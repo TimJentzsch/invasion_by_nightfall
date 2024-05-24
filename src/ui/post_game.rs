@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::core::{game_state::GameState, CoreSystemSet};
+use crate::core::{game_state::GameState, CoreSystemSet, GameStats, Winner};
 
 use super::UiSystemSet;
 
@@ -20,12 +20,17 @@ impl Plugin for PostGameUiPlugin {
 #[derive(Debug, Component)]
 struct PostGameUi;
 
-fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn(mut commands: Commands, asset_server: Res<AssetServer>, stats: Res<GameStats>) {
     let font = asset_server.load("fonts/fira_sans/FiraSans-Medium.ttf");
     let header_style = TextStyle {
         font: font.clone(),
         font_size: 150.0,
         ..default()
+    };
+
+    let text = match stats.winner {
+        Winner::Player => "You won!",
+        Winner::Enemy => "You lost!",
     };
 
     commands
@@ -45,7 +50,7 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
         ))
         .with_children(|child| {
             // Header bar
-            child.spawn(TextBundle::from_section("Post Game", header_style.clone()));
+            child.spawn(TextBundle::from_section(text, header_style.clone()));
         });
 }
 
