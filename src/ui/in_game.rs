@@ -2,9 +2,11 @@ use bevy::prelude::*;
 
 use crate::core::{game_state::GameState, inventory::Inventory, CoreSystemSet, UnitType};
 
-pub struct UiPlugin;
+use super::UiSystemSet;
 
-impl Plugin for UiPlugin {
+pub struct InGameUiPlugin;
+
+impl Plugin for InGameUiPlugin {
     fn build(&self, app: &mut App) {
         app.configure_sets(OnEnter(GameState::InGame), UiSystemSet.after(CoreSystemSet))
             .configure_sets(
@@ -13,16 +15,11 @@ impl Plugin for UiPlugin {
                     .after(CoreSystemSet)
                     .run_if(in_state(GameState::InGame)),
             )
-            .add_systems(
-                OnEnter(GameState::InGame),
-                setup_in_game.in_set(UiSystemSet),
-            )
-            .add_systems(Update, update_coins.in_set(UiSystemSet));
+            .add_systems(OnEnter(GameState::InGame), spawn.in_set(UiSystemSet))
+            .add_systems(Update, update_coins.in_set(UiSystemSet))
+            .add_systems(OnExit(GameState::InGame), despawn.in_set(UiSystemSet));
     }
 }
-
-#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-struct UiSystemSet;
 
 #[derive(Debug, Component)]
 struct InGameUi;
@@ -30,7 +27,7 @@ struct InGameUi;
 #[derive(Debug, Component)]
 struct CoinText;
 
-fn setup_in_game(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font = asset_server.load("fonts/fira_sans/FiraSans-Medium.ttf");
     let header_style = TextStyle {
         font: font.clone(),
@@ -96,6 +93,12 @@ fn setup_in_game(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ]),));
                 });
         });
+}
+
+fn despawn(mut commands: Commands, in_game_ui_query: Query<Entity, With<InGameUi>>) {
+    for in_game_ui in in_game_ui_query.iter() {
+        commands.entity(in_game_ui).despawn_recursive();
+    }
 }
 
 fn update_coins(mut query: Query<&mut Text, With<CoinText>>, inventory: Res<Inventory>) {
