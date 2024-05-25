@@ -81,16 +81,23 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
                     style: Style {
                         width: Val::Percent(100.),
                         padding: UiRect::all(Val::Px(10.)),
+                        flex_direction: FlexDirection::Column,
                         ..default()
                     },
                     ..default()
                 })
                 .with_children(|child| {
-                    child.spawn((TextBundle::from_sections([
-                        TextSection::new("[Q] Farmer (", footer_style.clone()),
-                        TextSection::new(UnitType::Farmer.cost().to_string(), footer_style.clone()),
-                        TextSection::new(" G)", footer_style.clone()),
-                    ]),));
+                    for unit_type in UnitType::player_units() {
+                        child.spawn((TextBundle::from_sections([
+                            TextSection::new("[", footer_style.clone()),
+                            TextSection::new("Q", footer_style.clone()),
+                            TextSection::new("] ", footer_style.clone()),
+                            TextSection::new(format!("{unit_type}"), footer_style.clone()),
+                            TextSection::new(" (", footer_style.clone()),
+                            TextSection::new(unit_type.cost().to_string(), footer_style.clone()),
+                            TextSection::new(" G)", footer_style.clone()),
+                        ]),));
+                    }
                 });
         });
 }

@@ -2,6 +2,7 @@
 //!
 //! Everything else depends on this module.
 
+use std::fmt::Display;
 use std::time::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
@@ -97,6 +98,22 @@ impl UnitType {
             Self::Archer => 20,
             Self::Shadow => 0,
         }
+    }
+
+    pub fn player_units() -> Vec<Self> {
+        vec![Self::Farmer, Self::Archer]
+    }
+}
+
+impl Display for UnitType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = match *self {
+            Self::Farmer => "Farmer",
+            Self::Archer => "Archer",
+            Self::Shadow => "Shadow",
+        };
+
+        write!(f, "{name}")
     }
 }
 
