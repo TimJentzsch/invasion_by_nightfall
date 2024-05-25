@@ -77,9 +77,16 @@ pub struct Foe;
 #[derive(Debug, Component)]
 pub struct Unit;
 
+#[derive(Debug, Component)]
+pub struct Projectile {
+    pub is_foe: bool,
+    pub speed: f32,
+}
+
 #[derive(Debug, Component, Clone, Copy)]
 pub enum UnitType {
     Farmer,
+    Archer,
     Shadow,
 }
 
@@ -87,23 +94,8 @@ impl UnitType {
     pub fn cost(&self) -> u32 {
         match *self {
             Self::Farmer => 10,
+            Self::Archer => 20,
             Self::Shadow => 0,
-        }
-    }
-
-    pub fn stats(&self) -> UnitStats {
-        match *self {
-            Self::Farmer => UnitStats {
-                speed: 10.,
-                attack_range: 25.,
-                attack_damage: 2.,
-            },
-
-            Self::Shadow => UnitStats {
-                speed: 10.,
-                attack_range: 20.,
-                attack_damage: 2.,
-            },
         }
     }
 }
@@ -192,7 +184,7 @@ fn spawn_unit(
         let id = commands
             .spawn((
                 Unit,
-                unit_type.stats(),
+                UnitStats::from_unit(unit_type),
                 Health::from_unit(unit_type),
                 *unit_type,
                 rng_component,

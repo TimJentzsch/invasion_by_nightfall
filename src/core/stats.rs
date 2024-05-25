@@ -11,6 +11,30 @@ pub struct UnitStats {
     pub attack_damage: f32,
 }
 
+impl UnitStats {
+    pub fn from_unit(unit_type: &UnitType) -> Self {
+        match *unit_type {
+            UnitType::Farmer => UnitStats {
+                speed: 10.,
+                attack_range: 25.,
+                attack_damage: 2.,
+            },
+
+            UnitType::Shadow => UnitStats {
+                speed: 10.,
+                attack_range: 20.,
+                attack_damage: 2.,
+            },
+
+            UnitType::Archer => UnitStats {
+                speed: 10.,
+                attack_range: 100.,
+                attack_damage: 2.,
+            },
+        }
+    }
+}
+
 #[derive(Debug, Component, Clone, Copy)]
 pub struct Health {
     current: f32,
@@ -22,6 +46,7 @@ impl Health {
         let max = match *unit_type {
             UnitType::Farmer => 5.,
             UnitType::Shadow => 10.,
+            UnitType::Archer => 2.,
         };
 
         Self::from_max(max)
