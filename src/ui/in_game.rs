@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::core::{game_state::GameState, inventory::Inventory, CoreSystemSet, UnitType};
+use crate::{
+    core::{game_state::GameState, inventory::Inventory, CoreSystemSet, UnitType},
+    input::InputData,
+};
 
 use super::UiSystemSet;
 
@@ -87,14 +90,18 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..default()
                 })
                 .with_children(|child| {
-                    for unit_type in UnitType::player_units() {
+                    for (index, unit_type) in UnitType::player_units().iter().enumerate() {
+                        let glyph = InputData::from_slot(index).unwrap().glyph;
+                        let unit_name = format!("{unit_type}");
+                        let cost = unit_type.cost().to_string();
+
                         child.spawn((TextBundle::from_sections([
                             TextSection::new("[", footer_style.clone()),
-                            TextSection::new("Q", footer_style.clone()),
+                            TextSection::new(glyph, footer_style.clone()),
                             TextSection::new("] ", footer_style.clone()),
-                            TextSection::new(format!("{unit_type}"), footer_style.clone()),
+                            TextSection::new(unit_name, footer_style.clone()),
                             TextSection::new(" (", footer_style.clone()),
-                            TextSection::new(unit_type.cost().to_string(), footer_style.clone()),
+                            TextSection::new(cost, footer_style.clone()),
                             TextSection::new(" G)", footer_style.clone()),
                         ]),));
                     }

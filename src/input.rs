@@ -20,6 +20,35 @@ impl Plugin for InputPlugin {
     }
 }
 
+pub struct InputData {
+    pub key: KeyCode,
+    pub glyph: String,
+}
+
+impl InputData {
+    pub fn from_slot(index: usize) -> Option<Self> {
+        match index {
+            0 => Some(Self {
+                key: KeyCode::KeyQ,
+                glyph: "Q".to_string(),
+            }),
+            1 => Some(Self {
+                key: KeyCode::KeyW,
+                glyph: "W".to_string(),
+            }),
+            2 => Some(Self {
+                key: KeyCode::KeyE,
+                glyph: "E".to_string(),
+            }),
+            3 => Some(Self {
+                key: KeyCode::KeyR,
+                glyph: "R".to_string(),
+            }),
+            _ => None,
+        }
+    }
+}
+
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 struct InputSystemSet;
 
@@ -28,12 +57,14 @@ fn handle_input(
     mut inventory: ResMut<Inventory>,
     mut spawn_unit_event: EventWriter<SpawnUnit>,
 ) {
-    let unit_type = UnitType::Farmer;
+    for (index, &unit_type) in UnitType::player_units().iter().enumerate() {
+        let key = InputData::from_slot(index).unwrap().key;
 
-    if keyboard_input.just_released(KeyCode::KeyQ) && inventory.coins.try_remove(unit_type.cost()) {
-        spawn_unit_event.send(SpawnUnit {
-            is_foe: false,
-            unit_type,
-        });
+        if keyboard_input.just_released(key) && inventory.coins.try_remove(unit_type.cost()) {
+            spawn_unit_event.send(SpawnUnit {
+                is_foe: false,
+                unit_type,
+            });
+        }
     }
 }
