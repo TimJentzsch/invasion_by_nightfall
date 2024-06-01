@@ -7,11 +7,12 @@ use std::time::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use bevy_turborand::prelude::*;
+use stats::AttackStats;
 
 use self::{
     game_state::GameState,
     inventory::{Inventory, Item},
-    stats::{Health, UnitStats},
+    stats::{Health, MovementStats},
 };
 
 pub mod game_state;
@@ -64,7 +65,7 @@ pub struct SpawnUnit {
 #[derive(Debug, Event)]
 pub struct Attack {
     is_foe: bool,
-    unit_stats: UnitStats,
+    stats: AttackStats,
     transform: Transform,
     direction: Vec3,
 }
@@ -201,8 +202,9 @@ fn spawn_unit(
         let id = commands
             .spawn((
                 Unit,
-                UnitStats::from_unit(unit_type),
-                Health::from_unit(unit_type),
+                MovementStats::from(*unit_type),
+                AttackStats::from(*unit_type),
+                Health::from(*unit_type),
                 *unit_type,
                 rng_component,
                 TransformBundle {
@@ -221,7 +223,10 @@ fn spawn_unit(
 
 fn unit_behavior(
     mut commands: Commands,
-    unit_query: Query<(Entity, &Transform, &UnitStats, Has<Foe>), (With<Unit>, Without<Attacking>)>,
+    unit_query: Query<
+        (Entity, &Transform, &AttackStats, Has<Foe>),
+        (With<Unit>, Without<Attacking>),
+    >,
     other_query: Query<(&Transform, Has<Foe>), Or<(With<Unit>, With<Base>)>>,
 ) {
     for (entity, transform, stats, is_foe) in unit_query.iter() {
@@ -254,7 +259,10 @@ fn unit_behavior(
 }
 
 fn move_units(
-    mut unit_query: Query<(&mut Transform, &UnitStats, Has<Foe>), (With<Unit>, Without<Attacking>)>,
+    mut unit_query: Query<
+        (&mut Transform, &MovementStats, Has<Foe>),
+        (With<Unit>, Without<Attacking>),
+    >,
     time: Res<Time>,
 ) {
     for (mut transform, stats, is_foe) in unit_query.iter_mut() {
@@ -267,10 +275,10 @@ fn move_units(
 fn attack_animation(
     mut commands: Commands,
     mut attack_event: EventWriter<Attack>,
-    mut unit_query: Query<(Entity, &mut Attacking, &Transform, &UnitStats, Has<Foe>), With<Unit>>,
+    mut unit_query: Query<(Entity, &mut Attacking, &Transform, &AttackStats, Has<Foe>), With<Unit>>,
     time: Res<Time>,
 ) {
-    for (entity, mut attacking, transform, unit_stats, is_foe) in unit_query.iter_mut() {
+    for (entity, mut attacking, transform, attack_stats, is_foe) in unit_query.iter_mut() {
         match &mut *attacking {
             Attacking::Start => {
                 // Start the foreswing anymation
@@ -287,7 +295,7 @@ fn attack_animation(
                         },
                         is_foe,
                         transform: *transform,
-                        unit_stats: unit_stats.clone(),
+                        stats: attack_stats.clone(),
                     });
                     *attacking = Attacking::Backswing(Timer::from_seconds(0.5, TimerMode::Once));
                 }
@@ -308,7 +316,7 @@ fn attack(
 ) {
     for Attack {
         is_foe,
-        unit_stats,
+        stats: unit_stats,
         transform,
         direction,
     } in attack_event.read()
