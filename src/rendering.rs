@@ -1,6 +1,7 @@
 //! Display the game on the screen.
 
 use bevy::{
+    color::palettes::css::GRAY,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
@@ -62,7 +63,7 @@ fn setup_in_game(
     let custom_materials = CustomMaterials {
         friend_unit: materials.add(Color::WHITE),
         foe_unit: materials.add(Color::BLACK),
-        base: materials.add(Color::GRAY),
+        base: materials.add(Color::from(GRAY)),
     };
 
     commands.insert_resource(custom_meshes);
