@@ -23,7 +23,7 @@ pub struct CorePlugin;
 
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RngPlugin::default())
+        app.add_plugins((RngPlugin::default(), DefaultPlugins))
             .add_event::<SpawnUnit>()
             .add_event::<Attack>()
             .init_state::<GameState>()
