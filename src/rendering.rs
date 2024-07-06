@@ -12,24 +12,23 @@ pub struct RenderingPlugin;
 
 impl Plugin for RenderingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(DefaultPlugins)
-            .configure_sets(
-                OnEnter(GameState::InGame),
-                RenderingSystemSet.after(CoreSystemSet),
-            )
-            .configure_sets(
-                Update,
-                RenderingSystemSet
-                    .after(CoreSystemSet)
-                    .run_if(in_state(GameState::InGame)),
-            )
-            .add_systems(
-                OnEnter(GameState::InGame),
-                (setup_in_game, setup_base_graphics)
-                    .chain()
-                    .in_set(RenderingSystemSet),
-            )
-            .add_systems(Update, spawn_unit_graphics.in_set(RenderingSystemSet));
+        app.configure_sets(
+            OnEnter(GameState::InGame),
+            RenderingSystemSet.after(CoreSystemSet),
+        )
+        .configure_sets(
+            Update,
+            RenderingSystemSet
+                .after(CoreSystemSet)
+                .run_if(in_state(GameState::InGame)),
+        )
+        .add_systems(
+            OnEnter(GameState::InGame),
+            (setup_in_game, setup_base_graphics)
+                .chain()
+                .in_set(RenderingSystemSet),
+        )
+        .add_systems(Update, spawn_unit_graphics.in_set(RenderingSystemSet));
     }
 }
 
